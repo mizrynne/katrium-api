@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use App\Http\Controllers\Api\V1\AccessCatalogController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\PropertyController;
+use App\Http\Controllers\Api\V1\UnitController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth/google')->group(function () {
@@ -19,6 +21,22 @@ Route::prefix('v1')->group(function () {
 
         Route::get('access-catalog', AccessCatalogController::class)->middleware(PermissionMiddleware::using('manage:users'));
         Route::apiResource('users', UserController::class)->middleware(PermissionMiddleware::using('manage:users'));
+
+        Route::controller(PropertyController::class)->prefix('properties')->group(function () {
+            Route::get('/', 'index')->middleware(PermissionMiddleware::using('view:units'));
+            Route::post('/', 'store')->middleware(PermissionMiddleware::using('manage:property'));
+            Route::get('{property}', 'show')->whereNumber('property')->middleware(PermissionMiddleware::using('view:units'));
+            Route::match(['put', 'patch'], '{property}', 'update')->whereNumber('property')->middleware(PermissionMiddleware::using('manage:property'));
+            Route::delete('{property}', 'destroy')->whereNumber('property')->middleware(PermissionMiddleware::using('manage:property'));
+        });
+
+        Route::controller(UnitController::class)->prefix('units')->group(function () {
+            Route::get('/', 'index')->middleware(PermissionMiddleware::using('view:units'));
+            Route::post('/', 'store')->middleware(PermissionMiddleware::using('manage:units'));
+            Route::get('{unit}', 'show')->whereNumber('unit')->middleware(PermissionMiddleware::using('view:units'));
+            Route::match(['put', 'patch'], '{unit}', 'update')->whereNumber('unit')->middleware(PermissionMiddleware::using('manage:units'));
+            Route::delete('{unit}', 'destroy')->whereNumber('unit')->middleware(PermissionMiddleware::using('manage:units'));
+        });
     });
 
     Broadcast::routes(['middleware' => ['auth:sanctum']]); 
