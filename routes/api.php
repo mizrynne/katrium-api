@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\V1\PropertyController;
 use App\Http\Controllers\Api\V1\UnitController;
 use App\Http\Controllers\Api\V1\GuestController;
 use App\Http\Controllers\Api\V1\GuestViolationController;
+use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\Beds24WebhookController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth/google')->group(function () {
@@ -51,7 +53,17 @@ Route::prefix('v1')->group(function () {
             Route::get('{guest}/violations', 'index')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests'));
             Route::post('{guest}/violations', 'store')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests'));
         });
+
+        Route::controller(BookingController::class)->prefix('bookings')->group(function () {
+            Route::get('/', 'index')->middleware(PermissionMiddleware::using('view:bookings|manage:bookings'));
+            Route::post('/', 'store')->middleware(PermissionMiddleware::using('manage:bookings'));
+            Route::get('{booking}', 'show')->whereNumber('booking')->middleware(PermissionMiddleware::using('view:bookings|manage:bookings'));
+            Route::match(['put', 'patch'], '{booking}', 'update')->whereNumber('booking')->middleware(PermissionMiddleware::using('manage:bookings'));
+            Route::delete('{booking}', 'destroy')->whereNumber('booking')->middleware(PermissionMiddleware::using('manage:bookings'));
+        });
     });
+
+    Route::post('webhooks/beds24', Beds24WebhookController::class)->name('webhooks.beds24');
 
     Broadcast::routes(['middleware' => ['auth:sanctum']]); 
 });
