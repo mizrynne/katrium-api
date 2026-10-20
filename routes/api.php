@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\AccessCatalogController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\PropertyController;
 use App\Http\Controllers\Api\V1\UnitController;
+use App\Http\Controllers\Api\V1\GuestController;
+use App\Http\Controllers\Api\V1\GuestViolationController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth/google')->group(function () {
@@ -36,6 +38,18 @@ Route::prefix('v1')->group(function () {
             Route::get('{unit}', 'show')->whereNumber('unit')->middleware(PermissionMiddleware::using('view:units'));
             Route::match(['put', 'patch'], '{unit}', 'update')->whereNumber('unit')->middleware(PermissionMiddleware::using('manage:units'));
             Route::delete('{unit}', 'destroy')->whereNumber('unit')->middleware(PermissionMiddleware::using('manage:units'));
+        });
+
+        Route::controller(GuestController::class)->prefix('guests')->group(function (): void {
+            Route::get('/', 'index')->middleware(PermissionMiddleware::using('manage:guests|view:bookings'));
+            Route::get('{guest}', 'show')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests|view:bookings'));
+            Route::post('/', 'store')->middleware(PermissionMiddleware::using('manage:guests'));
+            Route::match(['put', 'patch'], '{guest}', 'update')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests'));
+        });
+
+        Route::controller(GuestViolationController::class)->prefix('guests')->group(function (): void {
+            Route::get('{guest}/violations', 'index')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests'));
+            Route::post('{guest}/violations', 'store')->whereNumber('guest')->middleware(PermissionMiddleware::using('manage:guests'));
         });
     });
 
