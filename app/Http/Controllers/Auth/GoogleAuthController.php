@@ -42,7 +42,7 @@ class GoogleAuthController extends Controller
         $user->update([
             'google_id' => $googleUser->getId(),
             'avatar' => $googleUser->getAvatar(),
-            'name' => $user->name ?? $googleUser->getName(),
+            'name' => $googleUser->getName(),
         ]);
 
         $user->tokens()->delete();

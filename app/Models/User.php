@@ -12,8 +12,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -25,11 +23,6 @@ class User extends Authenticatable
         'avatar',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
     protected $appends = [
         'roles_list',
         'permissions_list',
@@ -39,17 +32,16 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
     }
 
     public function getRolesListAttribute(): array
     {
-        return $this->getRoleNames()->toArray();
+        return $this->getRoleNames()->values()->all();
     }
 
     public function getPermissionsListAttribute(): array
     {
-        return $this->getAllPermissions()->pluck('name')->toArray();
+        return $this->getAllPermissions()->pluck('name')->sort()->values()->all();
     }
 }

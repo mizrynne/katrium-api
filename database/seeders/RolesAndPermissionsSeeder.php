@@ -15,32 +15,35 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            'view:calendar', 'manage:calendar',
-            'manage:units',
+            'manage:users',
+            'manage:property',
+            'manage:units', 'view:units',
             'manage:guests',
-            'manage:bookings',
-            'view:financials', 'manage:financials',
-            'manage:users'
+            'manage:calendar', 'view:calendar',
+            'manage:bookings', 'view:bookings',
+            'manage:financials', 'view:financials'
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
         $superadminRole = Role::firstOrCreate(['name' => 'Superadmin', 'guard_name' => 'web']);
-        $adminRole      = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
         $managerRole    = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'web']);
         $partnerRole    = Role::firstOrCreate(['name' => 'Partner', 'guard_name' => 'web']);
-        $guestRole      = Role::firstOrCreate(['name' => 'Guest', 'guard_name' => 'web']);
-
-        $adminRole->syncPermissions(Permission::all());
+        
+        $superadminRole->syncPermissions(Permission::all());
         
         $managerRole->syncPermissions([
-            'view:calendar', 'manage:calendar',
+            'view:units',
             'manage:guests',
+            'manage:calendar',
             'manage:bookings'
         ]);
 
         $partnerRole->syncPermissions([
+            'view:units',
+            'view:calendar',
+            'view:bookings',
             'view:financials'
         ]);
 
