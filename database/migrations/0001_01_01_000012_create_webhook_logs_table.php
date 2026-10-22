@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('channel')->default('beds24');
             $table->string('event_type');
             $table->jsonb('payload');
-            $table->unique('idempotency_key');
+            $table->string('idempotency_key', 64)->unique();
             $table->enum('status', ['pending', 'processed', 'failed'])->default('pending');
             $table->text('error_message')->nullable();
             $table->timestamp('processed_at')->nullable();

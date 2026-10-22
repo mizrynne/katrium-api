@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: katrium-api
+    runtime: docker
+    region: singapore
+    plan: starter
+    healthCheckPath: /api/v1/health
+    envVars:
+      - fromGroup: katrium-shared
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: katrium-redis, property: connectionString }
+
+  - type: worker
+    name: katrium-horizon
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerCommand: php artisan horizon
+    envVars:
+      - fromGroup: katrium-shared
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: katrium-redis, property: connectionString }
+
+  - type: web
+    name: katrium-reverb
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerCommand: php artisan reverb:start
+    envVars:
+      - fromGroup: katrium-shared
+      - key: REVERB_SERVER_PORT
+        value: "10000"
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: katrium-redis, property: connectionString }
+
+  - type: keyvalue
+    name: katrium-redis
+    region: singapore
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []

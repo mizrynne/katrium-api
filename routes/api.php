@@ -64,6 +64,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('webhooks/beds24', Beds24WebhookController::class)->name('webhooks.beds24');
+    Route::get('health', HealthController::class);
 
     Broadcast::routes(['middleware' => ['auth:sanctum']]); 
 });

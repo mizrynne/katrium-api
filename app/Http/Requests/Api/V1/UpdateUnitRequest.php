@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Unit;
 use App\Rules\IsBusinessPartner;

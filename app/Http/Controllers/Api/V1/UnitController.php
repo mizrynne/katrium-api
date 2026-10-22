@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\IndexUnitRequest;
 use App\Http\Requests\Api\V1\StoreUnitRequest;
 use App\Http\Requests\Api\V1\UpdateUnitRequest;
-use App\Http\Resources\UnitResource;
+use App\Http\Resources\Api\V1\UnitResource;
 use App\Models\Unit;
 use App\Services\UnitService;
 use Illuminate\Http\JsonResponse;

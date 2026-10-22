@@ -47,19 +47,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view:financials'
         ]);
 
-        $emails = explode(',', env('BOOTSTRAP_EMAILS'));
-
-        foreach ($emails as $email) {
-            $cleanEmail = trim($email);
-
-            if (empty($cleanEmail)) {
-                continue;
-            }
-
-            User::firstOrCreate(
-                ['email' => $cleanEmail],
-                ['name' => 'KatriuM Dev']
-            )->assignRole($superadminRole);
+        foreach (config('katrium.bootstrap_emails') as $email) {
+            User::firstOrCreate(['email' => $email], ['name' => 'KatriuM Dev'])->assignRole($superadminRole);
         }
     }
 }
