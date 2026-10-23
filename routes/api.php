@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\GuestController;
 use App\Http\Controllers\Api\V1\GuestViolationController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\Beds24WebhookController;
+use App\Http\Controllers\Api\V1\HealthController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth/google')->group(function () {
