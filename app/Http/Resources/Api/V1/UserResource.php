@@ -30,6 +30,7 @@ class UserResource extends JsonResource
         ];
     }
 
+    /** @return list<string> */
     private function names($permissions): array
     {
         return $permissions->pluck('name')->unique()->sort()->values()->all();

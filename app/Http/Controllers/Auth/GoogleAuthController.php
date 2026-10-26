@@ -10,6 +10,13 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
+    /**
+     * Start Google OAuth
+     *
+     * Returns the Google consent-screen URL. The SPA should navigate the browser to `url`.
+     *
+     * @unauthenticated
+     */
     public function redirectToGoogle(): JsonResponse
     {
         $url = Socialite::driver('google')
@@ -20,6 +27,16 @@ class GoogleAuthController extends Controller
         return response()->json(['url' => $url]);
     }
 
+    /**
+     * Complete Google OAuth and issue a token
+     *
+     * Exchanges the Google `code` for a profile and signs in **only** pre-provisioned users
+     * (created by a Superadmin). Any previous Sanctum tokens for the user are revoked and a
+     * new Bearer token is returned. Responds `403` when the email is not whitelisted and `422`
+     * when Google rejects the code.
+     *
+     * @unauthenticated
+     */
     public function handleGoogleCallback(Request $request): JsonResponse
     {
         try {
@@ -61,6 +78,12 @@ class GoogleAuthController extends Controller
         ]);
     }
 
+    /**
+     * Get the current user
+     *
+     * Roles plus the fully-resolved permission list (role permissions + direct overrides).
+     * The frontend uses this to drive route guards and UI visibility.
+     */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -75,6 +98,11 @@ class GoogleAuthController extends Controller
         ]);
     }
 
+    /**
+     * Sign out
+     *
+     * Revokes the Bearer token used for this request.
+     */
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();

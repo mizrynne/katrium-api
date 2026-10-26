@@ -18,9 +18,28 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class GuestResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+     * Keys marked optional (`?:`) are only present for callers with `manage:guests`.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     id: int,
+     *     first_name: string|null,
+     *     last_name: string|null,
+     *     full_name: string|null,
+     *     country: string|null,
+     *     total_stays: int,
+     *     is_returning_guest: bool,
+     *     email?: string|null,
+     *     phone?: string|null,
+     *     mobile?: string|null,
+     *     tag?: 'regular'|'vip'|'blacklisted',
+     *     notes?: string|null,
+     *     bookings_count?: int,
+     *     violations_count?: int,
+     *     lifetime_value?: float,
+     *     violations?: GuestViolationResource[],
+     *     created_at?: string|null,
+     *     updated_at?: string|null
+     * }
      */
     public function toArray(Request $request): array
     {

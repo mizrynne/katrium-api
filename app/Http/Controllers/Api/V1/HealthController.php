@@ -8,6 +8,9 @@ use Illuminate\Http\JsonResponse;
 
 class HealthController extends Controller
 {
+    /**
+     * @unauthenticated
+     */
     public function __invoke(HealthService $health): JsonResponse
     {
         $result = $health->check();

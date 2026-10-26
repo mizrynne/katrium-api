@@ -5,12 +5,13 @@ namespace App\Http\Resources\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin \stdClass */
 class AccessCatalogResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array{roles: list<array{name: string, permissions: list<string>}>, permissions: list<string>}
      */
     public function toArray(Request $request): array
     {

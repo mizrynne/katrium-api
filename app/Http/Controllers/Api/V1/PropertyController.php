@@ -19,6 +19,12 @@ class PropertyController extends Controller
     {
     }
 
+    /**
+     * List properties
+     *
+     * Staff see every property. Business Partners only see properties containing units they own,
+     * and `beds24_id` is omitted for them.
+     */
     public function index(IndexPropertyRequest $request): AnonymousResourceCollection
     {
         return PropertyResource::collection(
@@ -26,6 +32,9 @@ class PropertyController extends Controller
         );
     }
 
+    /**
+     * Create a property
+     */
     public function store(StorePropertyRequest $request): JsonResponse
     {
         $property = $this->properties->create($request->validated());
@@ -33,11 +42,19 @@ class PropertyController extends Controller
         return (new PropertyResource($property))->response()->setStatusCode(201);
     }
 
+    /**
+     * Get a property
+     *
+     * Includes the caller-visible units. Returns `404` if a Business Partner does not own any unit in it.
+     */
     public function show(Request $request, int $property): PropertyResource
     {
         return new PropertyResource($this->properties->show($request->user(), $property));
     }
 
+    /**
+     * Update a property
+     */
     public function update(UpdatePropertyRequest $request, Property $property): PropertyResource
     {
         return new PropertyResource(
@@ -45,6 +62,11 @@ class PropertyController extends Controller
         );
     }
 
+    /**
+     * Archive a property
+     *
+     * Soft-archives (`is_active = false`). Returns `409` while the property still has active units.
+     */
     public function destroy(Request $request, Property $property): PropertyResource
     {
         return new PropertyResource($this->properties->archive($request->user(), $property));

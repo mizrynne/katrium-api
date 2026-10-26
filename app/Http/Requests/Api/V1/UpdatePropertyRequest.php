@@ -33,12 +33,12 @@ class UpdatePropertyRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Property $property */
+        /** @var Property|null $property */
         $property = $this->route('property');
  
         return [
             'name'           => ['sometimes', 'required', 'string', 'max:255'],
-            'beds24_id'      => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('properties', 'beds24_id')->ignore($property->getKey())],
+            'beds24_id' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('properties', 'beds24_id')->ignore($property?->getKey())],
             'currency'       => ['sometimes', 'required', 'string', 'regex:/^[A-Z]{3}$/'],
             'timezone'       => ['sometimes', 'required', 'timezone:all'],
             'address'        => ['sometimes', 'nullable', 'string', 'max:255'],

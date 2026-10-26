@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Support\PartnerScope;
 
+/** @mixin \App\Models\Unit */
 class UnitResource extends JsonResource
 {
     /**

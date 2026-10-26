@@ -26,17 +26,17 @@ class UpdateUnitRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Unit $unit */
+        /** @var Unit|null $unit */
         $unit = $this->route('unit');
  
         return [
-            'property_id'    => ['prohibited'],
-            'name'           => ['sometimes', 'required', 'string', 'max:255'],
-            'parent_id'      => [
+            'property_id' => ['prohibited'],
+            'name'        => ['sometimes', 'required', 'string', 'max:255'],
+            'parent_id'   => array_values(array_filter([
                 'sometimes', 'nullable', 'integer',
-                Rule::notIn([$unit->getKey()]),
-                Rule::exists('units', 'id')->where('property_id', $unit->property_id),
-            ],
+                $unit ? Rule::notIn([$unit->getKey()]) : null,
+                $unit ? Rule::exists('units', 'id')->where('property_id', $unit->property_id) : null,
+            ])),
             'beds24_room_id' => ['sometimes', 'nullable', 'string', 'max:255'],
             'qty'            => ['sometimes', 'integer', 'min:1'],
             'capacity'       => ['sometimes', 'integer', 'min:1'],

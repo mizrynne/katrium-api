@@ -19,6 +19,12 @@ class UnitController extends Controller
     {
     }
 
+    /**
+     * List units
+     *
+     * Staff see all units. Business Partners are scoped to units where `partner_id` is their user id
+     * (the `partner_id` filter is ignored for them) and `beds24_room_id` is omitted.
+     */
     public function index(IndexUnitRequest $request): AnonymousResourceCollection
     {
         return UnitResource::collection(
@@ -26,6 +32,11 @@ class UnitController extends Controller
         );
     }
 
+    /**
+     * Create a unit
+     *
+     * `partner_id` must reference a user holding the Partner role. `parent_id` must belong to the same property.
+     */
     public function store(StoreUnitRequest $request): JsonResponse
     {
         $unit = $this->units->create($request->validated());
@@ -33,11 +44,21 @@ class UnitController extends Controller
         return (new UnitResource($unit))->response()->setStatusCode(201);
     }
 
+    /**
+     * Get a unit
+     *
+     * Includes property, partner, parent and children.
+     */
     public function show(Request $request, int $unit): UnitResource
     {
         return new UnitResource($this->units->show($request->user(), $unit));
     }
 
+    /**
+     * Update a unit
+     *
+     * `property_id` cannot be changed (`422`). Re-parenting under a descendant is rejected (`422`).
+     */
     public function update(UpdateUnitRequest $request, Unit $unit): UnitResource
     {
         return new UnitResource(
@@ -45,6 +66,11 @@ class UnitController extends Controller
         );
     }
 
+    /**
+     * Archive a unit
+     *
+     * Soft-archives (`is_active = false`).
+     */
     public function destroy(Request $request, Unit $unit): UnitResource
     {
         return new UnitResource($this->units->archive($request->user(), $unit));
