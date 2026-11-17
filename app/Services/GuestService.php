@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Booking;
 use App\Models\Guest;
 use App\Models\Unit;
 use App\Models\User;
@@ -101,6 +102,16 @@ class GuestService
         }
 
         return $guest;
+    }
+
+    public function refreshTotalStays(int $guestId): void
+    {
+        $count = Booking::query()
+            ->where('guest_id', $guestId)
+            ->whereNotIn('status', config('beds24.non_blocking_statuses'))
+            ->count();
+
+        Guest::query()->whereKey($guestId)->update(['total_stays' => $count]);
     }
 
     public function paginate(User $actor, array $filters = []): LengthAwarePaginator

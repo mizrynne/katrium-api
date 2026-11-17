@@ -35,11 +35,13 @@ class User extends Authenticatable
         ];
     }
 
+    /** @return list<string> */
     public function getRolesListAttribute(): array
     {
         return $this->getRoleNames()->values()->all();
     }
 
+    /** @return list<string> */
     public function getPermissionsListAttribute(): array
     {
         return $this->getAllPermissions()->pluck('name')->sort()->values()->all();

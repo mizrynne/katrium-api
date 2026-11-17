@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\GuestViolation;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class UserService
 {
@@ -81,6 +84,10 @@ class UserService
         });
     }
 
+    /**
+     * @throws ValidationException  when deleting yourself (422)
+     * @throws ConflictHttpException when other records still reference the user (409)
+     */
     public function delete(User $user, User $actor): void
     {
         if ($actor->is($user)) {
@@ -89,10 +96,25 @@ class UserService
             ]);
         }
 
-        DB::transaction(function () use ($user) {
-            $user->tokens()->delete();
-            $user->delete();
-        });
+        if (GuestViolation::query()->where('recorded_by_user_id', $user->getKey())->exists()) {
+            throw new ConflictHttpException(
+                'This user has recorded guest violations, so the account must be kept for the audit trail.'
+            );
+        }
+
+        try {
+            DB::transaction(function () use ($user) {
+                $user->tokens()->delete();
+                $user->delete();
+            });
+        } catch (QueryException $e) {
+            // 23503 = foreign_key_violation: a reference we did not pre-check (or a violation recorded in a race).
+            if (($e->errorInfo[0] ?? null) === '23503') {
+                throw new ConflictHttpException('This user is still referenced by other records and cannot be deleted.');
+            }
+
+            throw $e;
+        }
     }
 
     private function permissionsDiffer(User $user, array $requested): bool

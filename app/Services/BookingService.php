@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Guest;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\GuestService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;

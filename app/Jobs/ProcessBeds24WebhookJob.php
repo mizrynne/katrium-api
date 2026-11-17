@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Exceptions\BookingOverlapException;
 use App\Exceptions\BookingRuleException;
 use App\Models\WebhookLog;
+use App\Enums\GuestTag;
 use App\Services\Beds24SyncService;
 use App\Services\BookingService;
 use App\Services\GuestService;
@@ -73,7 +74,7 @@ class ProcessBeds24WebhookJob implements ShouldQueue
                 if ($normalized['intent'] === 'upsert' && $normalized['has_guest']) {
                     $guest = $guests->resolveOrCreateGuest($normalized['guest']);
 
-                    if ($guest->tag === 'blacklisted') {
+                    if ($guest->tag === GuestTag::Blacklisted) {
                         Log::warning('Beds24 booking received for a blacklisted guest.', [
                             'guest_id' => $guest->id,
                             'beds24_booking_id' => $normalized['beds24_booking_id'],

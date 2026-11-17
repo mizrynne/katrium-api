@@ -11,6 +11,7 @@ use App\Models\Guest;
 use App\Services\GuestViolationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\JsonResponse;
 
 class GuestViolationController extends Controller
 {
@@ -35,10 +36,9 @@ class GuestViolationController extends Controller
      *
      * Set `blacklist_guest: true` to also flip the guest's tag to `blacklisted` in the same transaction.
      */
-    public function store(StoreViolationRequest $request, Guest $guest): GuestViolationResource
+    public function store(StoreViolationRequest $request, Guest $guest): JsonResponse
     {
-        return new GuestViolationResource(
-            $this->violations->record($guest, $request->user(), $request->validated())
-        );
+        return (new GuestViolationResource($this->violations->record($guest, $request->user(), $request->validated())))
+            ->response()->setStatusCode(201);
     }
 }

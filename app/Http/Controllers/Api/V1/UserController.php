@@ -74,6 +74,7 @@ class UserController extends Controller
      * Delete a user
      *
      * Revokes all of the user's tokens and deletes the account. You cannot delete yourself (`422`).
+     * Returns `409` when the user has recorded guest violations (the account is kept for the audit trail).
      */
     public function destroy(Request $request, User $user): JsonResponse
     {

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use App\Http\Resources\Api\V1\AuthUserResource;
 
 class GoogleAuthController extends Controller
 {
@@ -65,16 +66,14 @@ class GoogleAuthController extends Controller
         $user->tokens()->delete();
         $token = $user->createToken('katrium_token')->plainTextToken;
 
+        /** @var list<string> $roles */
+        $roles = $user->roles_list;
+        /** @var list<string> $permissions */
+        $permissions = $user->permissions_list;
+
         return response()->json([
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'avatar' => $user->avatar,
-                'roles' => $user->roles_list,
-                'permissions' => $user->permissions_list,
-            ],
+            'user' => new AuthUserResource($user)
         ]);
     }
 
@@ -88,14 +87,12 @@ class GoogleAuthController extends Controller
     {
         $user = $request->user();
 
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'avatar' => $user->avatar,
-            'roles' => $user->roles_list,
-            'permissions' => $user->permissions_list,
-        ]);
+        /** @var list<string> $roles */
+        $roles = $user->roles_list;
+        /** @var list<string> $permissions */
+        $permissions = $user->permissions_list;
+
+        return new AuthUserResource($request->user());
     }
 
     /**

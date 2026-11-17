@@ -1,12 +1,18 @@
 {
     "openapi": "3.1.2",
     "info": {
-        "title": "Katie",
-        "version": "0.0.1"
+        "title": "KatriuM API",
+        "version": "1.0.0",
+        "description": "KatriuM PMS headless REST API (KM Staycations).\n\n**Auth:** Sanctum Bearer token issued by `GET /auth/google/callback` (Google OAuth only, pre-provisioned accounts).\nSend `Authorization: Bearer <token>`.\n\n**Access control:** Spatie roles + direct permission overrides. Each endpoint lists its required permission slug(s).\n`Superadmin` bypasses every permission check.\n\n**Errors:** `401` unauthenticated, `403` forbidden, `404` not found, `422` validation (`message` + `errors` record).\nBooking rule violations return `422` with `success`, `code`, `message`, `errors`, `conflict`."
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8000/api"
+            "url": "http://127.0.0.1:8000/api/v1",
+            "description": "Local"
+        },
+        {
+            "url": "https://katrium-api.onrender.com/api/v1",
+            "description": "Production"
         }
     ],
     "security": [
@@ -15,7 +21,7 @@
         }
     ],
     "paths": {
-        "/v1/access-catalog": {
+        "/access-catalog": {
             "get": {
                 "operationId": "v1.accessCatalog",
                 "description": "All assignable roles (with their default permissions) and every permission slug.\nUsed by the user-management form to render role/permission pickers.\n\n*Requires permission: `manage:users`*  \n*Superadmin bypasses all permission checks.*",
@@ -84,7 +90,7 @@
                 ]
             }
         },
-        "/v1/bookings": {
+        "/bookings": {
             "get": {
                 "operationId": "booking.index",
                 "description": "Staff with `manage:bookings` see everything; others (Business Partners) only bookings in units they own.\nGuest `email`/`phone`, `channel_confirmation_code` and `sync.beds24_booking_id`/`sync.error` are `null`\nunless the caller has `manage:bookings`. Use `from`/`to` for the calendar window (overlap semantics).\n\n*Requires any one of these permissions: `view:bookings`, `manage:bookings`*  \n*Superadmin bypasses all permission checks.*",
@@ -498,7 +504,7 @@
                 ]
             }
         },
-        "/v1/bookings/{booking}": {
+        "/bookings/{booking}": {
             "get": {
                 "operationId": "booking.show",
                 "description": "`404` when the caller cannot see the booking's unit.\n\n*Requires any one of these permissions: `view:bookings`, `manage:bookings`*  \n*Superadmin bypasses all permission checks.*",
@@ -811,7 +817,7 @@
                 ]
             }
         },
-        "/v1/auth/google/redirect": {
+        "/auth/google/redirect": {
             "get": {
                 "operationId": "googleAuth.redirectToGoogle",
                 "description": "Returns the Google consent-screen URL. The SPA should navigate the browser to `url`.",
@@ -842,7 +848,7 @@
                 "security": []
             }
         },
-        "/v1/auth/google/callback": {
+        "/auth/google/callback": {
             "get": {
                 "operationId": "googleAuth.handleGoogleCallback",
                 "description": "Exchanges the Google `code` for a profile and signs in **only** pre-provisioned users\n(created by a Superadmin). Any previous Sanctum tokens for the user are revoked and a\nnew Bearer token is returned. Responds `403` when the email is not whitelisted and `422`\nwhen Google rejects the code.",
@@ -862,58 +868,7 @@
                                             "type": "string"
                                         },
                                         "user": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "avatar": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "roles": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "relations": {
-                                                                "type": "array",
-                                                                "prefixItems": [
-                                                                    {
-                                                                        "type": "string",
-                                                                        "const": "roles"
-                                                                    }
-                                                                ],
-                                                                "minItems": 1,
-                                                                "maxItems": 1
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "relations"
-                                                        ]
-                                                    }
-                                                },
-                                                "permissions": {
-                                                    "type": "array",
-                                                    "items": {}
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "name",
-                                                "email",
-                                                "avatar",
-                                                "roles",
-                                                "permissions"
-                                            ]
+                                            "$ref": "#/components/schemas/AuthUserResource"
                                         }
                                     },
                                     "required": [
@@ -970,7 +925,7 @@
                 "security": []
             }
         },
-        "/v1/auth/me": {
+        "/auth/me": {
             "get": {
                 "operationId": "googleAuth.me",
                 "description": "Roles plus the fully-resolved permission list (role permissions + direct overrides).\nThe frontend uses this to drive route guards and UI visibility.",
@@ -984,58 +939,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        },
-                                        "avatar": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ]
-                                        },
-                                        "roles": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "relations": {
-                                                        "type": "array",
-                                                        "prefixItems": [
-                                                            {
-                                                                "type": "string",
-                                                                "const": "roles"
-                                                            }
-                                                        ],
-                                                        "minItems": 1,
-                                                        "maxItems": 1
-                                                    }
-                                                },
-                                                "required": [
-                                                    "relations"
-                                                ]
-                                            }
-                                        },
-                                        "permissions": {
-                                            "type": "array",
-                                            "items": {}
-                                        }
-                                    },
-                                    "required": [
-                                        "id",
-                                        "name",
-                                        "email",
-                                        "avatar",
-                                        "roles",
-                                        "permissions"
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1061,7 +965,7 @@
                 }
             }
         },
-        "/v1/auth/logout": {
+        "/auth/logout": {
             "post": {
                 "operationId": "googleAuth.logout",
                 "description": "Revokes the Bearer token used for this request.",
@@ -1110,7 +1014,7 @@
                 }
             }
         },
-        "/v1/guests": {
+        "/guests": {
             "get": {
                 "operationId": "guest.index",
                 "description": "Two response tiers: callers with `manage:guests` get contact data, tag, notes, stats and violations;\nread-only callers (`view:bookings`, i.e. Business Partners) get identity basics only, limited to guests\nwho stayed in their units. The `tag` filter is ignored for read-only callers.\n\n*Requires any one of these permissions: `manage:guests`, `view:bookings`*  \n*Superadmin bypasses all permission checks.*",
@@ -1360,7 +1264,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "`GuestResource`",
                         "content": {
                             "application/json": {
@@ -1423,7 +1327,7 @@
                 ]
             }
         },
-        "/v1/guests/{guest}": {
+        "/guests/{guest}": {
             "get": {
                 "operationId": "guest.show",
                 "description": "Same two-tier shape as the list endpoint. `404` when a read-only caller has no stay in their units.\n\n*Requires any one of these permissions: `manage:guests`, `view:bookings`*  \n*Superadmin bypasses all permission checks.*",
@@ -1587,7 +1491,7 @@
                 ]
             }
         },
-        "/v1/guests/{guest}/violations": {
+        "/guests/{guest}/violations": {
             "get": {
                 "operationId": "guestViolation.index",
                 "description": "Newest first.\n\n*Requires permission: `manage:guests`*  \n*Superadmin bypasses all permission checks.*",
@@ -1834,7 +1738,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "`GuestViolationResource`",
                         "content": {
                             "application/json": {
@@ -1900,7 +1804,7 @@
                 ]
             }
         },
-        "/v1/health": {
+        "/health": {
             "get": {
                 "operationId": "v1.health",
                 "tags": [
@@ -1921,7 +1825,7 @@
                 "security": []
             }
         },
-        "/v1/properties": {
+        "/properties": {
             "get": {
                 "operationId": "property.index",
                 "description": "Staff see every property. Business Partners only see properties containing units they own,\nand `beds24_id` is omitted for them.\n\n*Requires permission: `view:units`*  \n*Superadmin bypasses all permission checks.*",
@@ -2228,7 +2132,7 @@
                 ]
             }
         },
-        "/v1/properties/{property}": {
+        "/properties/{property}": {
             "get": {
                 "operationId": "property.show",
                 "description": "Includes the caller-visible units. Returns `404` if a Business Partner does not own any unit in it.\n\n*Requires permission: `view:units`*  \n*Superadmin bypasses all permission checks.*",
@@ -2501,7 +2405,7 @@
                 ]
             }
         },
-        "/v1/units": {
+        "/units": {
             "get": {
                 "operationId": "unit.index",
                 "description": "Staff see all units. Business Partners are scoped to units where `partner_id` is their user id\n(the `partner_id` filter is ignored for them) and `beds24_room_id` is omitted.\n\n*Requires permission: `view:units`*  \n*Superadmin bypasses all permission checks.*",
@@ -2846,7 +2750,7 @@
                 ]
             }
         },
-        "/v1/units/{unit}": {
+        "/units/{unit}": {
             "get": {
                 "operationId": "unit.show",
                 "description": "Includes property, partner, parent and children.\n\n*Requires permission: `view:units`*  \n*Superadmin bypasses all permission checks.*",
@@ -3134,7 +3038,7 @@
                 ]
             }
         },
-        "/v1/users": {
+        "/users": {
             "get": {
                 "operationId": "users.index",
                 "description": "Paginated, ordered by name. Each item includes `role_permissions`, `direct_permissions`\n(overrides) and the merged `permissions`.\n\n*Requires permission: `manage:users`*  \n*Superadmin bypasses all permission checks.*",
@@ -3441,7 +3345,7 @@
                 ]
             }
         },
-        "/v1/users/{user}": {
+        "/users/{user}": {
             "get": {
                 "operationId": "users.show",
                 "description": "*Requires permission: `manage:users`*  \n*Superadmin bypasses all permission checks.*",
@@ -3717,10 +3621,31 @@
                 "type": "object",
                 "properties": {
                     "roles": {
-                        "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "permissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "permissions"
+                            ]
+                        }
                     },
                     "permissions": {
-                        "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
                 "required": [
@@ -3728,6 +3653,45 @@
                     "permissions"
                 ],
                 "title": "AccessCatalogResource"
+            },
+            "AuthUserResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "avatar": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "avatar",
+                    "roles",
+                    "permissions"
+                ],
+                "title": "AuthUserResource"
             },
             "BookingResource": {
                 "type": "object",

@@ -39,8 +39,10 @@ MD,
         'layout' => 'responsive',
     ],
 
-    'servers' => null,
-
+    'servers' => [
+        'Local'      => 'http://127.0.0.1:8000/api/v1',
+        'Production' => 'https://katrium-api.onrender.com/api/v1',
+    ],
     'enum_cases_description_strategy' => 'description',
     'enum_cases_names_strategy' => false,
     'flatten_deep_query_parameters' => true,

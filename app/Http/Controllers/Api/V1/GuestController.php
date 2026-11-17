@@ -14,6 +14,7 @@ use App\Services\GuestService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\JsonResponse;
 
 class GuestController extends Controller
 {
@@ -54,9 +55,10 @@ class GuestController extends Controller
      * Email is case-insensitive unique; phone/mobile are normalised to E.164 (default +63) and unique.
      * At least a name, email or phone is required (`422`).
      */
-    public function store(StoreGuestRequest $request): GuestResource
+    public function store(StoreGuestRequest $request): JsonResponse
     {
-        return new GuestResource($this->guests->create($request->validated()));
+        return (new GuestResource($this->guests->create($request->validated())))
+            ->response()->setStatusCode(201);
     }
 
     /**

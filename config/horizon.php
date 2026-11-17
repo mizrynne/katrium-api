@@ -199,7 +199,11 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default', 'webhooks', 'beds24-outbound'],
+            'queue' => [
+                env('BEDS24_QUEUE_WEBHOOKS', 'webhooks'),
+                env('BEDS24_QUEUE_OUTBOUND', 'beds24-outbound'),
+                'default',
+            ],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
