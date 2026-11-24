@@ -4,8 +4,13 @@ namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
-/** @mixin \stdClass */
+/**
+ * @property array{roles: Collection<int, Role>, permissions: Collection<int, Permission>} $resource
+ */
 class AccessCatalogResource extends JsonResource
 {
     /**
@@ -16,13 +21,23 @@ class AccessCatalogResource extends JsonResource
     public function toArray(Request $request): array
     {
         /** @var list<array{name: string, permissions: list<string>}> $roles */
-        $roles = Role::with('permissions')->where('guard_name', 'web')->orderBy('name')->get()
-            ->map(fn ($r) => ['name' => $r->name, 'permissions' => $r->permissions->pluck('name')->sort()->values()->all()])
-            ->values()->all();
+        $roles = $this->resource['roles']
+            ->map(fn (Role $role): array => [
+                'name' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->sort()->values()->all(),
+            ])
+            ->values()
+            ->all();
 
         /** @var list<string> $permissions */
-        $permissions = Permission::where('guard_name', 'web')->orderBy('name')->pluck('name')->all();
+        $permissions = $this->resource['permissions']
+            ->pluck('name')
+            ->values()
+            ->all();
 
-        return response()->json(['data' => ['roles' => $roles, 'permissions' => $permissions]]);
+        return [
+            'roles' => $roles,
+            'permissions' => $permissions,
+        ];
     }
 }

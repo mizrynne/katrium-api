@@ -94,7 +94,7 @@ class GoogleAuthController extends Controller
         /** @var list<string> $permissions */
         $permissions = $user->permissions_list;
 
-        return new AuthUserResource($request->user());
+        return new AuthUserResource($user);
     }
 
     /**
