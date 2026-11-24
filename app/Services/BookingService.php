@@ -11,6 +11,7 @@ use App\Models\Guest;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\GuestService;
+use App\Support\PartnerScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
@@ -70,8 +71,8 @@ class BookingService
 
     public function isVisibleTo(Booking $booking, User $user): bool
     {
-        return $user->can('manage:bookings')
-            || $booking->unit()->where('partner_id', $user->id)->exists();
+        return ! PartnerScope::applies($user)
+            || $booking->unit()->where('partner_id', $user->getKey())->exists();
     }
 
     public function create(array $data): Booking

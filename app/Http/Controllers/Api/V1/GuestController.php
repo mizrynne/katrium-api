@@ -68,6 +68,7 @@ class GuestController extends Controller
      */
     public function update(UpdateGuestRequest $request, Guest $guest): GuestResource
     {
+        abort_unless($this->guests->isVisibleTo($guest, $request->user()), 404, 'Guest not found.');
         return new GuestResource($this->guests->update($guest, $request->validated()));
     }
 }

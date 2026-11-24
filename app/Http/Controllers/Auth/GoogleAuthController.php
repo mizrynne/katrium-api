@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Api\V1\AuthUserResource;
+use Illuminate\Support\Facades\Log;
 
 class GoogleAuthController extends Controller
 {
@@ -43,13 +44,14 @@ class GoogleAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to authenticate with Google.',
-                'error' => $e->getMessage(),
-            ], 422);
+            Log::warning('Google OAuth callback failed.', ['exception' => $e::class, 'message' => $e->getMessage()]);
+        
+            return response()->json(['message' => 'Failed to authenticate with Google.'], 422);
         }
 
-        $user = User::where('email', $googleUser->getEmail())->first();
+        $user = User::query()
+            ->whereRaw('LOWER(email) = ?', [mb_strtolower((string) $googleUser->getEmail())])
+            ->first();
 
         if (! $user) {
             return response()->json([

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Support\PartnerScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,7 +34,14 @@ class StoreBookingRequest extends FormRequest
         return [
             'unit_id' => [
                 'required', 'integer',
-                Rule::exists('units', 'id')->where(fn ($q) => $q->where('is_active', true)->whereNotNull('beds24_room_id')),
+                Rule::exists('units', 'id')->where(function ($q) {
+                    $q->where('is_active', true)->whereNotNull('beds24_room_id');
+
+                    $user = $this->user();
+                    if ($user && PartnerScope::applies($user)) {
+                        $q->where('partner_id', $user->getKey());   // a scoped user can only book their own units
+                    }
+                }),
             ],
  
             'guest_id' => ['required_without:guest', 'nullable', 'integer', 'exists:guests,id'],

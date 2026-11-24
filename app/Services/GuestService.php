@@ -9,6 +9,7 @@ use App\Models\Guest;
 use App\Models\Unit;
 use App\Models\User;
 use App\Support\ContactNormalizer;
+use App\Support\PartnerScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -118,7 +119,7 @@ class GuestService
     {
         $canManage = $actor->can('manage:guests');
 
-        return $this->visibleTo(Guest::query(), $actor, $canManage)
+        return $this->visibleTo(Guest::query(), $actor)
             ->when($canManage, fn (Builder $q) => $this->withStats($q))
             ->when($canManage ? ($filters['tag'] ?? null) : null, fn (Builder $q, string $tag) => $q->where('tag', $tag))
             ->when($filters['search'] ?? null, fn (Builder $q, string $term) => $this->applySearch($q, $term, $canManage))
@@ -131,7 +132,7 @@ class GuestService
     public function findVisibleOrFail(User $actor, int $id): Guest
     {
         $canManage = $actor->can('manage:guests');
-        $query = $this->visibleTo(Guest::query(), $actor, $canManage);
+        $query = $this->visibleTo(Guest::query(), $actor);
 
         if ($canManage) {
             $query = $this->withStats($query)->with([
@@ -249,19 +250,21 @@ class GuestService
         ]);
     }
 
-    private function visibleTo(Builder $query, User $actor, bool $canManage): Builder
+    private function visibleTo(Builder $query, User $actor): Builder
     {
-        if ($canManage) {
+        if (! PartnerScope::applies($actor)) {
             return $query;
         }
 
         return $query->whereHas(
             'bookings',
-            fn (Builder $b) => $b->whereIn(
-                'unit_id',
-                Unit::query()->where('partner_id', $actor->getKey())->select('id')
-            )
+            fn (Builder $b) => $b->whereIn('unit_id', Unit::query()->where('partner_id', $actor->getKey())->select('id'))
         );
+    }
+
+    public function isVisibleTo(Guest $guest, User $actor): bool
+    {
+        return $this->visibleTo(Guest::query(), $actor)->whereKey($guest->getKey())->exists();
     }
 
     private function withStats(Builder $query): Builder

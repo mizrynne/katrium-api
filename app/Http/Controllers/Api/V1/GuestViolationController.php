@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreViolationRequest;
 use App\Http\Resources\Api\V1\GuestViolationResource;
 use App\Models\Guest;
+use App\Services\GuestService;
 use App\Services\GuestViolationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,7 +16,7 @@ use Illuminate\Http\JsonResponse;
 
 class GuestViolationController extends Controller
 {
-    public function __construct(private readonly GuestViolationService $violations) {}
+    public function __construct(private readonly GuestService $guests, private readonly GuestViolationService $violations) {}
 
     /**
      * List a guest's violations
@@ -24,6 +25,7 @@ class GuestViolationController extends Controller
      */
     public function index(Request $request, Guest $guest): AnonymousResourceCollection
     {
+        abort_unless($this->guests->isVisibleTo($guest, $request->user()), 404, 'Guest not found.');
         $perPage = $request->validate([
             'per_page' => ['nullable', 'integer', 'between:1,100'],
         ])['per_page'] ?? 25;
@@ -38,6 +40,7 @@ class GuestViolationController extends Controller
      */
     public function store(StoreViolationRequest $request, Guest $guest): JsonResponse
     {
+        abort_unless($this->guests->isVisibleTo($guest, $request->user()), 404, 'Guest not found.');
         return (new GuestViolationResource($this->violations->record($guest, $request->user(), $request->validated())))
             ->response()->setStatusCode(201);
     }
