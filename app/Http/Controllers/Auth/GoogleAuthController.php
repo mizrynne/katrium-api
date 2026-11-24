@@ -85,16 +85,15 @@ class GoogleAuthController extends Controller
      * Roles plus the fully-resolved permission list (role permissions + direct overrides).
      * The frontend uses this to drive route guards and UI visibility.
      */
-    public function me(Request $request): JsonResponse
+    /**
+     * Get the current user
+     *
+     * Roles plus the fully-resolved permission list (role permissions + direct overrides).
+     * The frontend uses this to drive route guards and UI visibility.
+     */
+    public function me(Request $request): AuthUserResource
     {
-        $user = $request->user();
-
-        /** @var list<string> $roles */
-        $roles = $user->roles_list;
-        /** @var list<string> $permissions */
-        $permissions = $user->permissions_list;
-
-        return new AuthUserResource($user);
+        return new AuthUserResource($request->user());
     }
 
     /**
