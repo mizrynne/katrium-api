@@ -14,6 +14,9 @@ RUN apt-get update \
  && a2enmod rewrite headers \
  && rm -rf /var/lib/apt/lists/*
 
+ RUN printf '<IfModule mpm_prefork_module>\n    StartServers 2\n    MinSpareServers 2\n    MaxSpareServers 4\n    MaxRequestWorkers 10\n    MaxConnectionsPerChild 500\n</IfModule>\n' > /etc/apache2/conf-available/mpm-tuning.conf \
+ && a2enconf mpm-tuning
+
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     PORT=10000
 

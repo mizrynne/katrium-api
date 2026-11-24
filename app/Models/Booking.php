@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PartnerScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,12 +43,16 @@ class Booking extends Model
         return $this->belongsTo(Guest::class);
     }
 
+    /**
+     * B2: WHICH rows a user may see is decided by role (PartnerScope), exactly like units and properties.
+     * WHAT they may do, and which fields they receive, stays a matter of permissions.
+     */
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->can('manage:bookings')) {
+        if (! PartnerScope::applies($user)) {
             return $query;
         }
 
-        return $query->whereHas('unit', fn (Builder $q) => $q->where('partner_id', $user->id));
+        return $query->whereHas('unit', fn (Builder $q) => $q->where('partner_id', $user->getKey()));
     }
 }

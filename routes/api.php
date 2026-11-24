@@ -12,13 +12,12 @@ use App\Http\Controllers\Api\V1\GuestController;
 use App\Http\Controllers\Api\V1\GuestViolationController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\Beds24WebhookController;
-use App\Http\Controllers\Api\V1\HealthController;
 
 Route::prefix('v1')->group(function () {
-    Route::prefix('auth/google')->group(function () {
+    Route::prefix('auth/google')->middleware('throttle:auth')->group(function () {
         Route::get('redirect', [GoogleAuthController::class, 'redirectToGoogle']);
         Route::get('callback', [GoogleAuthController::class, 'handleGoogleCallback']);
-    }); 
+    });
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [GoogleAuthController::class, 'me']);
@@ -64,8 +63,9 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::post('webhooks/beds24', Beds24WebhookController::class)->name('webhooks.beds24');
-    Route::get('health', HealthController::class);
+    Route::post('webhooks/beds24', Beds24WebhookController::class)
+        ->middleware('throttle:webhook')
+        ->name('webhooks.beds24');
 
-    Broadcast::routes(['middleware' => ['auth:sanctum']]); 
+    Broadcast::routes(['middleware' => ['auth:sanctum']]);
 });

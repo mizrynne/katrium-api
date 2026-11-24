@@ -9,9 +9,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Two tiers of exposure:
- *  - everyone who can read guests (manage:guests OR view:bookings): identity basics only
- *  - manage:guests: contact data, tier, notes, stats and incident history
- * Read-only investors (view:bookings) must never receive PII or blacklist data.
+ *  - everyone who can read guests (manage:guests OR view:bookings): name and country only
+ *  - manage:guests: contact data, tag, notes, visit history, stats and incident history
+ * Read-only investors (view:bookings) must never receive PII, blacklist data, or visit history
+ * that reveals stays at other owners' units.
  *
  * @mixin \App\Models\Guest
  */
@@ -26,8 +27,8 @@ class GuestResource extends JsonResource
      *     last_name: string|null,
      *     full_name: string|null,
      *     country: string|null,
-     *     total_stays: int,
-     *     is_returning_guest: bool,
+     *     total_stays?: int,
+     *     is_returning_guest?: bool,
      *     email?: string|null,
      *     phone?: string|null,
      *     mobile?: string|null,
@@ -49,8 +50,6 @@ class GuestResource extends JsonResource
             'last_name' => $this->last_name,
             'full_name' => $this->full_name,
             'country' => $this->country,
-            'total_stays' => $this->total_stays,
-            'is_returning_guest' => $this->total_stays > 1,
         ];
 
         if (! $request->user()?->can('manage:guests')) {
@@ -58,6 +57,8 @@ class GuestResource extends JsonResource
         }
 
         return $data + [
+            'total_stays' => $this->total_stays,
+            'is_returning_guest' => $this->total_stays > 1,
             'email' => $this->email,
             'phone' => $this->phone,
             'mobile' => $this->mobile,

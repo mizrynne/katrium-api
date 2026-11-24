@@ -20,9 +20,10 @@ class BookingController extends Controller
     /**
      * List bookings
      *
-     * Staff with `manage:bookings` see everything; others (Business Partners) only bookings in units they own.
+     * Staff (Superadmin, Manager) see everything; Business Partners only bookings in units they own.
      * Guest `email`/`phone`, `channel_confirmation_code` and `sync.beds24_booking_id`/`sync.error` are `null`
-     * unless the caller has `manage:bookings`. Use `from`/`to` for the calendar window (overlap semantics).
+     * unless the caller has `manage:bookings`; guest `tag`/`total_stays` are `null` unless the caller has
+     * `manage:guests`. Use `from`/`to` for the calendar window (overlap semantics).
      */
     public function index(IndexBookingRequest $request): AnonymousResourceCollection
     {
@@ -56,7 +57,7 @@ class BookingController extends Controller
      */
     public function show(Request $request, Booking $booking): BookingResource
     {
-        abort_unless($this->bookings->isVisibleTo($booking, $request->user()), 404, 'Booking not found.');
+        $this->authorizeVisibility($request, $booking);
 
         return (new BookingResource($booking->load(['unit', 'guest'])))
             ->additional(['success' => true]);
@@ -67,9 +68,12 @@ class BookingController extends Controller
      *
      * Bookings imported from an OTA are channel-managed: editing `unit_id`, `check_in`, `check_out`, `status`
      * or `total_price` returns `422` with `code = ota_booking_locked`. Changing a direct booking re-queues the Beds24 sync.
+     * `404` when the caller cannot see the booking's unit.
      */
     public function update(UpdateBookingRequest $request, Booking $booking): BookingResource
     {
+        $this->authorizeVisibility($request, $booking);
+
         return (new BookingResource($this->bookings->update($booking, $request->validated())))
             ->additional(['success' => true, 'message' => 'Booking updated.']);
     }
@@ -78,11 +82,19 @@ class BookingController extends Controller
      * Cancel a booking
      *
      * Sets status to `canceled` (idempotent). OTA bookings must be cancelled on the channel
-     * (`422`, `code = ota_cancellation_not_allowed`).
+     * (`422`, `code = ota_cancellation_not_allowed`). `404` when the caller cannot see the booking's unit.
      */
-    public function destroy(Booking $booking): BookingResource
+    public function destroy(Request $request, Booking $booking): BookingResource
     {
+        $this->authorizeVisibility($request, $booking);
+
         return (new BookingResource($this->bookings->cancel($booking)))
             ->additional(['success' => true, 'message' => 'Booking canceled.']);
+    }
+
+    /** B2: writes are scoped exactly like reads; out-of-scope rows look like they do not exist. */
+    private function authorizeVisibility(Request $request, Booking $booking): void
+    {
+        abort_unless($this->bookings->isVisibleTo($booking, $request->user()), 404, 'Booking not found.');
     }
 }

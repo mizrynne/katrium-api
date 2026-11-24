@@ -17,7 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render terminates TLS at its load balancer. Without this every client looks like the
+        // balancer's IP (all IP-based throttles share one bucket) and generated URLs are http://.
         $middleware->trustProxies(at: '*');
+
+        // Applies the `api` rate limiter (defined in AppServiceProvider) to every API route.
+        $middleware->throttleApi();
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
