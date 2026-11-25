@@ -159,6 +159,7 @@ class BookingService
         );
 
         $oldGuestId = $booking->guest_id;
+        $previousUnitId = $booking->unit_id;
 
         DB::transaction(function () use ($booking, $attributes, $data, $isDirect, $oldGuestId) {
             if ($guest = $this->resolveGuest($data)) {
@@ -182,7 +183,7 @@ class BookingService
         if ($booking->sync_status === 'pending') {
             $this->dispatchPush($booking);
         }
-        BookingChanged::dispatch($booking, 'updated');
+        BookingChanged::dispatch($booking, 'updated', $previousUnitId !== $booking->unit_id ? $previousUnitId : null);
 
         return $booking->load(['unit', 'guest']);
     }
@@ -231,6 +232,8 @@ class BookingService
             ->lockForUpdate()
             ->first();
 
+        $previousUnitId = $existing?->unit_id;
+            
         if ($existing && $this->isStale($existing, $n)) {
             return ['booking' => $existing, 'action' => 'ignored_stale'];
         }
@@ -317,7 +320,11 @@ class BookingService
             $this->guests->refreshTotalStays($booking->guest_id);
         }
 
-        BookingChanged::dispatch($booking, $action);
+        BookingChanged::dispatch(
+            $booking,
+            $action,
+            $previousUnitId !== null && $previousUnitId !== $booking->unit_id ? $previousUnitId : null,
+        );
 
         return ['booking' => $booking, 'action' => $action];
     }
